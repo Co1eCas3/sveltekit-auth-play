@@ -64,7 +64,6 @@ export const get = async req => {
       'Set-Cookie': cookie.serialize('ref', refToken, {
         httpOnly: true,
         maxAge: (60 * 60 * 24 * 7), // one week
-        domain: process.env.BASE_URI,
         path: '/'
       })
     }

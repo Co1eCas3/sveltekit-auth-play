@@ -1,5 +1,6 @@
 import cookie from 'cookie'
 import { responses } from '$lib/utils/responses'
+import * as tokenizer from '$lib/utils/tokenizer'
 
 export const get = async req => {
   let newAuthToken,
@@ -33,9 +34,7 @@ export const get = async req => {
       'set-cookie': cookie.serialize('ref', newRefToken, {
         httpOnly: true,
         maxAge: (60 * 60 * 24 * 7),
-        domain: process.env.BASE_URI,
-        path: '/',
-        sameSite: true
+        path: '/'
       })
     }
   )

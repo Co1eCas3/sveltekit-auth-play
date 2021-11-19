@@ -30,7 +30,7 @@ const createTokenStore = () => {
 export const token = createTokenStore()
 
 function startRefreshTimer(set) {
-  return setTimeout(() => silentRefresh(set), /*(1000 * 60 * 5) -*/ 5000)
+  return setTimeout(() => silentRefresh(set), /*(1000 * 60 * 5) -*/ 10000)
 }
 
 async function silentRefresh(set) {
