@@ -28,7 +28,7 @@
  *   -- // { status: 200, body: { message: 'Success!!' }, headers: { 'Content-type': 'application/json' } }
  */
 
-const genericErrorMessages = status => {
+const genericMessages = status => {
   switch (status) {
     case 200:
     case 201:
@@ -51,11 +51,16 @@ const genericErrorMessages = status => {
 const fn = (status) => (body = null, headers = null) => {
   const res = { status }
   if (body) {
-    if (!Object.entries(body).length)
-      res.body = { message: genericErrorMessages(status) }
-    else
-      res.body = body
+    if (typeof body === 'object') {
+      if (!Object.entries(body).length)
+        res.body = { message: genericMessages(status) }
+      else
+        res.body = body
+    } else if (typeof body === 'string') {
+      res.body = { message: body }
+    }
   }
+
   if (headers && Object.entries(headers).length) res.headers = headers
 
   return res

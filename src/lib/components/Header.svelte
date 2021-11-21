@@ -1,5 +1,5 @@
 <script>
-	import { token } from '$lib/stores/token';
+	import { authorization } from '$lib/stores/authorization';
 	import LoginForm from '$lib/components/LoginForm.svelte';
 	import LogoutBtn from '$lib/components/LogoutBtn.svelte';
 
@@ -7,8 +7,8 @@
 </script>
 
 <header>
-	<div class="btn-cont" class:loginBtnChecked>
-		{#if !$token}
+	<div class="btn-cont center-children" class:loginBtnChecked>
+		{#if !$authorization}
 			<input type="checkbox" id="login-btn" bind:checked={loginBtnChecked} />
 			<label for="login-btn" class="center-children">LOGIN</label>
 			{#if loginBtnChecked}
@@ -36,7 +36,7 @@
 
 	.btn-cont {
 		position: relative;
-		width: 7rem;
+		width: fit-content;
 		height: 3.5rem;
 		border: 1px solid #232323;
 		border-radius: 12px;

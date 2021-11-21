@@ -1,31 +1,15 @@
-# create-svelte
+# Sveltekit Password-less Login Demo
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte);
+Github: https://github.com/Co1eCas3/sveltekit-auth-play
 
-## Creating a project
+## The Goal
 
-If you're seeing this, you've probably already done this step. Congrats!
+An authentication system using Sveltkit + MongoDB Atlas allowing users to provide only their email, no passwords. Upon login, user receives an email with a link containing a login token as a query parameter. They are logged in once they navigate to that link.
 
-```bash
-# create a new project in the current directory
-npm init svelte@next
+## The Process
 
-# create a new project in my-app
-npm init svelte@next my-app
-```
-
-> Note: the `@next` is temporary
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+1. Every route is checked for authentication in `hooks.js`
+a. 
 
 ## Building
 

@@ -1,62 +1,46 @@
 <script>
-	import { session } from '$app/stores';
-	import { onMount } from 'svelte';
 	import '../app.css';
 
-	import { token } from '$lib/stores/token.js';
+	import cookie from 'cookie';
+	import { session } from '$app/stores';
+	import { onMount } from 'svelte';
 
+	import { authorization } from '$lib/stores/authorization.js';
+
+	import AuthorizationMessage from '$lib/components/AuthorizationMessage.svelte';
 	import Header from '$lib/components/Header.svelte';
 
-	let refreshingAuthToken = false;
-
 	onMount(async () => {
-		console.log('mounting main layout');
-		console.log('checking auth status');
-		if (!$token && $session.refreshReady) {
-			console.log('layout trying refresh');
-			refreshingAuthToken = true;
-			const refreshRes = await fetch('/api/auth/refresh.json', {
-				method: 'GET',
-				mode: 'no-cors'
-			});
+		const cookies = cookie.parse(document.cookie);
+		const knownUser = Boolean(cookies.user);
 
-			const data = await refreshRes.json();
+		if (!$authorization && knownUser) {
+			window.dispatchEvent(new CustomEvent('authorizationAttempt'));
+
+			const refreshRes = await authorization.refresh();
+
 			if (refreshRes.ok) {
-				token.set(data.token);
-				$session.user = data.user;
+				$session.user = refreshRes.user;
+				window.dispatchEvent(new CustomEvent('authorized'));
 			} else {
-				$session.authError = data;
+				window.dispatchEvent(
+					new CustomEvent('authorizationFailed', { detail: { message: refreshRes.authError } })
+				);
 			}
-		} else if ($session.authError) {
-			console.log($session.authError);
 		}
-
-		refreshingAuthToken = false;
 	});
 </script>
-
-{#if refreshingAuthToken}
-	<div class="center-children">Authorizing...</div>
-{/if}
 
 <Header />
 <main class="center-children">
 	<slot />
 </main>
 
-<style>
-	div {
-		position: fixed;
-		bottom: 0;
-		left: 0;
-		width: 100%;
-		height: 2rem;
-		background: red;
-		color: white;
-	}
+<AuthorizationMessage />
 
+<style>
 	main {
 		width: 100%;
-		min-height: 100vh;
+		min-height: calc(100vh - 5.5rem);
 	}
 </style>

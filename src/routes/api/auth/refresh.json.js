@@ -11,13 +11,14 @@ export const get = async req => {
   const { ref: refToken } = cookies ? cookie.parse(cookies) : ''
 
   if (!refToken)
-    return responses.forbidden({ message: 'Token missing' })
+    return responses.forbidden('Token missing')
 
   // validate token
   try {
     user = await tokenizer.consume(refToken, 'refresh')
   } catch (error) {
-    return responses.forbidden({ error, message: 'Could not validate token' })
+    console.error(error)
+    return responses.forbidden('Could not validate token', setCookieHeader())
   }
 
   // issue new tokens and save to user record
@@ -25,17 +26,26 @@ export const get = async req => {
     newAuthToken = await tokenizer.issue(user, 'authenticate')
     newRefToken = await tokenizer.issue(user, 'refresh')
   } catch (error) {
-    return responses.forbidden({ error, message: 'Error creating token' })
+    console.error(error)
+    return responses.forbidden('Error creating token', setCookieHeader())
   }
 
-  return responses.success(
-    { token: newAuthToken },
-    {
-      'set-cookie': cookie.serialize('ref', newRefToken, {
-        httpOnly: true,
-        maxAge: (60 * 60 * 24 * 7),
-        path: '/'
-      })
-    }
-  )
+  const { email, name } = user
+  const resBody = {
+    token: newAuthToken,
+    user: { email, name }
+  }
+
+  return responses.success(resBody, setCookieHeader(newRefToken))
+}
+
+function setCookieHeader(refToken = '') {
+  return {
+    'Set-Cookie': cookie.serialize('ref', refToken, {
+      httpOnly: true,
+      maxAge: refToken ? (60 * 60 * 24 * 7) : 0,
+      path: '/',
+      sameSite: true
+    })
+  }
 }

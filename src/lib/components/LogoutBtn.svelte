@@ -1,22 +1,25 @@
 <script>
 	import { session } from '$app/stores';
-	import { token } from '$lib/stores/token';
+	import { goto } from '$app/navigation';
+	import { authorization } from '$lib/stores/authorization';
 
 	async function logout(e) {
-		const res = await fetch('/api/auth/logout.json', {
-			method: 'POST',
-			mode: 'no-cors',
-			body: JSON.stringify({ email: $session.user.email })
-		});
-
-		const data = res.json();
-
-		if (res.ok) {
-			token.unset();
-		} else {
-			console.log(data);
-		}
+		await authorization.revoke($session.user.email);
+		$session.user = null;
+		window.dispatchEvent(new CustomEvent('deauthorized'));
+		goto('/');
 	}
 </script>
 
-<button on:click={logout}>LOGOUT</button>
+<button class="center-children" on:click={logout}>LOGOUT</button>
+
+<style>
+	button {
+		width: 100%;
+		height: 100%;
+		border: none;
+		font-size: 2rem;
+		margin: 0 auto;
+		cursor: pointer;
+	}
+</style>

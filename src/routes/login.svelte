@@ -1,27 +1,36 @@
 <script>
+	import cookie from 'cookie';
 	import { page, session } from '$app/stores';
+	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 
-	import { token } from '$lib/stores/token';
+	import { authorization } from '$lib/stores/authorization';
 
 	import LoginForm from '$lib/components/LoginForm.svelte';
 
 	onMount(async () => {
-		if (!$token && $page.query) {
-			const loginToken = $page.query.get('token');
+		const loginToken = $page.query.get('token');
 
-			const res = await fetch(`/api/auth/login.json?token=${loginToken}`);
-			console.log(res);
-			const data = await res.json();
+		if (!$authorization && loginToken) {
+			window.dispatchEvent(new CustomEvent('authorizationAttempt'));
+			const res = await authorization.get(loginToken);
 
 			if (res.ok) {
-				token.set(data.token);
-				$session.user = data.user;
+				$session.user = res.user;
+				window.dispatchEvent(new CustomEvent('authorized'));
+
+				const knownUserCookie = cookie.serialize('user', 'true', {
+					path: '/',
+					expires: new Date(2038, 11, 31)
+				});
+				document.cookie = knownUserCookie;
+				console.log(document.cookie);
+
+				goto('/user', { replaceState: true });
 			} else {
-				$session.authError = {
-					error: data.error || {},
-					message: data.message || 'Could not login'
-				};
+				window.dispatchEvent(new CustomEvent('authorizationFailed', { message: res.authError }));
+
+				goto('/login', { replaceState: true });
 			}
 		}
 	});
@@ -29,16 +38,7 @@
 
 <section class="center-children">
 	<div class="top center-children">
-		{#if !$token}
-			<LoginForm />
-		{:else}
-			<h1>Logged in!</h1>
-		{/if}
-	</div>
-	<div class="bottom center-children">
-		<pre>
-      {JSON.stringify($session)}
-    </pre>
+		<LoginForm />
 	</div>
 </section>
 
@@ -51,11 +51,5 @@
 	.top {
 		width: 100%;
 		height: 50%;
-	}
-
-	.bottom {
-		width: 100%;
-		height: 50%;
-		justify-content: flex-start;
 	}
 </style>

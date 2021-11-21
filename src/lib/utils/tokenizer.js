@@ -45,7 +45,7 @@ export const consume = async (token, source) => {
   db = db || await dbConnect()
   const user = await validate(token, source)
 
-  await db.models.Token.deleteOne({ token })
+  await deauthorize(user.tid)
 
   return user
 }

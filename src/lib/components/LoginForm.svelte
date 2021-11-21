@@ -1,10 +1,11 @@
 <script>
 	import isEmail from 'validator/lib/isEmail';
+	import { authorization } from '$lib/stores/authorization';
 
 	let email = '';
-	let emailUnfocused = false;
-	$: startCheckingEmailValidity = emailUnfocused || email.length >= 6;
-	$: emailIsValid = startCheckingEmailValidity ? isEmail(email) : true;
+	let hasUnfocusedInput = false;
+	$: emailIsValid = isEmail(email);
+	$: showEmailError = hasUnfocusedInput && !emailIsValid;
 
 	let reqInProg = false;
 	let linkSent = false;
@@ -16,20 +17,14 @@
 		if (!emailIsValid) return;
 		reqInProg = true;
 
-		const res = await fetch('/api/auth/login.json', {
-			method: 'POST',
-			mode: 'no-cors',
-			body: JSON.stringify({ email })
-		});
+		const res = await authorization.request(email);
 		const data = await res.json();
 
-		if (res.ok) {
-			console.log(data.loginLink);
-			linkSent = true;
-		} else {
-			error = data.message || 'An Error occurred';
-			console.log(data.error);
-		}
+		linkSent = res.ok;
+		error = data.message || null;
+		// for demo purposes only,
+		// actual app would not respond w/ a body on success
+		console.log(data.loginLink);
 
 		email = '';
 		reqInProg = false;
@@ -45,12 +40,12 @@
 			placeholder="you@site.com"
 			novalidate
 			bind:value={email}
-			on:blur={() => (emailUnfocused = true)}
+			on:blur={() => (hasUnfocusedInput = true)}
 		/>
 		<button type="submit" class="center-children btn" disabled={!emailIsValid}>
 			{reqInProg ? '...' : 'GO'}
 		</button>
-		{#if !emailIsValid}
+		{#if showEmailError && !linkSent}
 			<small>Please enter a valid email</small>
 		{/if}
 	</div>

@@ -14,16 +14,21 @@ export const post = async req => {
     db = await dbConnect()
     user = await db.models.User.findOne({ email })
   } catch (error) {
+    console.error(error)
     return responses.serverError({})
   }
 
-  if (!user) return responses.notFound({ message: 'User not found' })
+  if (!user) return responses.notFound('User not found')
 
   const { deletedCount } = await deauthorize(user.tid)
 
   if (!deletedCount) console.warn('No tokens deleted!')
 
   return responses.success({ deletedCount }, {
-    'Set-Cookie': cookie.parse('ref', '')
+    'Set-Cookie': cookie.serialize('ref', '', {
+      path: '/',
+      maxAge: 0,
+      httpOnly: true
+    })
   })
 }
