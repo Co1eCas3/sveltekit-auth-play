@@ -7,30 +7,29 @@
 	import { authorization } from '$lib/stores/authorization';
 
 	import LoginForm from '$lib/components/LoginForm.svelte';
+	import { message } from '$lib/stores/message';
 
 	onMount(async () => {
 		const loginToken = $page.query.get('token');
 
 		if (!$authorization && loginToken) {
-			window.dispatchEvent(new CustomEvent('authorizationAttempt'));
+			message.show('Attempting to authorize...');
 			const res = await authorization.get(loginToken);
 
 			if (res.ok) {
 				$session.user = res.user;
-				window.dispatchEvent(new CustomEvent('authorized'));
 
 				const knownUserCookie = cookie.serialize('user', 'true', {
 					path: '/',
 					expires: new Date(2038, 11, 31)
 				});
 				document.cookie = knownUserCookie;
-				console.log(document.cookie);
 
-				goto('/user', { replaceState: true });
+				await goto('/user', { replaceState: true });
+				message.showNClose(`Welcome ${$session.user.name || 'user'}!!`);
 			} else {
-				window.dispatchEvent(new CustomEvent('authorizationFailed', { message: res.authError }));
-
-				goto('/login', { replaceState: true });
+				await goto('/login', { replaceState: true });
+				message.showNClose(`Authorization error: ${res.authError}<br/>Please login again`);
 			}
 		}
 	});

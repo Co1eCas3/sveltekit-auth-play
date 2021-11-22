@@ -1,19 +1,16 @@
 <script>
 	import { session } from '$app/stores';
-	import { goto } from '$app/navigation';
-	import { onMount } from 'svelte';
-	import { authorization } from '$lib/stores/authorization';
 
-	onMount(() => {
-		if (!$authorization) {
-			window.dispatchEvent(new CustomEvent('unauthorized'));
-			goto('/login', { replaceState: true });
-		}
-	});
-
-	console.log($session);
+	import AuthorizedOnlyPage from '$lib/components/AuthorizedOnlyPage.svelte';
 </script>
 
-<section>
-	<h1>{`${$session.user.name}'s Profile!`}</h1>
-</section>
+<AuthorizedOnlyPage className="page-cont">
+	<h1>Profile</h1>
+</AuthorizedOnlyPage>
+
+<style>
+	:global(.page-cont) {
+		width: 100%;
+		justify-self: flex-start;
+	}
+</style>

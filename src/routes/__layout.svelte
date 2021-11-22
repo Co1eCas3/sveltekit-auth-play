@@ -6,6 +6,7 @@
 	import { onMount } from 'svelte';
 
 	import { authorization } from '$lib/stores/authorization.js';
+	import { message } from '$lib/stores/message.js';
 
 	import AuthorizationMessage from '$lib/components/AuthorizationMessage.svelte';
 	import Header from '$lib/components/Header.svelte';
@@ -15,17 +16,14 @@
 		const knownUser = Boolean(cookies.user);
 
 		if (!$authorization && knownUser) {
-			window.dispatchEvent(new CustomEvent('authorizationAttempt'));
-
+			message.show('Attempting to authorize...');
 			const refreshRes = await authorization.refresh();
 
 			if (refreshRes.ok) {
 				$session.user = refreshRes.user;
-				window.dispatchEvent(new CustomEvent('authorized'));
+				message.showNClose(`Weclome ${$session.user.name || 'user'}!!`);
 			} else {
-				window.dispatchEvent(
-					new CustomEvent('authorizationFailed', { detail: { message: refreshRes.authError } })
-				);
+				message.showNClose(`Authorization error: ${refreshRes.authError}<br/>Please login again`);
 			}
 		}
 	});

@@ -2,12 +2,13 @@
 	import { session } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { authorization } from '$lib/stores/authorization';
+	import { message } from '$lib/stores/message';
 
 	async function logout(e) {
 		await authorization.revoke($session.user.email);
 		$session.user = null;
-		window.dispatchEvent(new CustomEvent('deauthorized'));
-		goto('/');
+		await goto('/');
+		message.showNClose('Logged out! Come back soon!');
 	}
 </script>
 
